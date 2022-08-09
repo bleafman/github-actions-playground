@@ -33,7 +33,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.REPO_ACCESS_PAT }}
-          commit-message: "ci: upgrades dependencies (triggered by {{ github.event.client_payload.dependency || 'unknown (most likely a manual trigger)' }})"
+          commit-message: "ci: upgrades dependencies (triggered by ${{ github.event.client_payload.dependency || 'unknown (most likely a manual trigger)' }})"
           title: "Auto-upgrade dependencies"
           body: "Upgrade dependencies to latest version based on the range specified in the package.json"
           branch: "auto-upgrade-dependencies"
