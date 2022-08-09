@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Upgrade Dependencies on Repository Dispatch
 
 # Controls when the workflow will run
@@ -10,18 +8,27 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   upgrade-deps:
-    # The type of runner that the job will run on
     name: Upgrade Dependencies
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+
       - uses: ./upgrade-dependencies-and-automerge
+        id: upgrade-deps
         with:
           github-access-token: ${{ secrets.REPO_ACCESS_PAT }}
           reason: "${{ github.event.client_payload.dependency }} updated"
+
+      - name: Auto Approve Pull Request
+        if: steps.upgrade-deps.outputs.pull-request-number != ''
+        uses: hmarr/auto-approve-action@v2
+        with:
+          github-token: ${{ secrets.REPO_ACCESS_PAT }}
+          pull-request-number: ${{ steps.upgrade-deps.outputs.pull-request-number }}
 

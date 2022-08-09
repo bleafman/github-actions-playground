@@ -1,7 +1,9 @@
-name: "Upgrade Dependencies and Automerge"
+name: "Upgrade Dependencies and Enable Automerge"
 description: "Will run 'yarn upgrade' and then create a PR and approve if there are changes."
 
 # Requires actions/checkout@v3 and actions/setup-node@v3 to be run first.
+
+# If a review is required to merge, you'll need to add a step to auto approve the PR with something like https://github.com/hmarr/auto-approve-action
 
 inputs:
   github-personal-access-token:
@@ -11,6 +13,13 @@ inputs:
     description: "The reason/trigger for the upgrade. This will be used in the commit message."
     required: false
 
+outputs:
+  pull-request-url:
+    description: "The URL of the PR created by this action."
+    value: ${{ steps.create-pr.outputs.pull-request-url }}
+  pull-request-number:
+    description: "The number of the PR created by this action."
+    value: ${{ steps.create-pr.outputs.pull-request-number }}
 
 runs:
   using: "composite"
@@ -19,7 +28,7 @@ runs:
       run: yarn upgrade
 
     - name: Create pull request if there are changes
-      id: cpr
+      id: create-pr
       uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ inputs.github-personal-access-token }}
@@ -31,15 +40,8 @@ runs:
         delete-branch: true
 
     - name: Enable Pull Request Automerge
-        if: steps.cpr.outputs.pull-request-operation == 'created'
+        if: steps.create-pr.outputs.pull-request-operation == 'created'
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
           token: ${{ inputs.github-personal-access-token }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-
-    - name: Auto approve
-        if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: juliangruber/approve-pull-request-action@v2
-        with:
-          github-token: ${{ secrets.github-personal-access-token }}
-          number: ${{ steps.cpr.outputs.pull-request-number }}
+          pull-request-number: ${{ steps.create-pr.outputs.pull-request-number }}
