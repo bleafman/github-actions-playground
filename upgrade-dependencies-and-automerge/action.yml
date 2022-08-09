@@ -6,7 +6,7 @@ description: "Will run 'yarn upgrade' and then create a PR and approve if there 
 # If a review is required to merge, you'll need to add a step to auto approve the PR with something like https://github.com/hmarr/auto-approve-action
 
 inputs:
-  github-personal-access-token:
+  github-access-token:
     description: "A GitHub personal access token with 'repo' permissions."
     required: true
   reason:
@@ -32,7 +32,7 @@ runs:
       id: create-pr
       uses: peter-evans/create-pull-request@v3
       with:
-        token: ${{ inputs.github-personal-access-token }}
+        token: ${{ inputs.github-access-token }}
         commit-message: "ci: upgrades dependencies (${{ inputs.reason || 'reason unspecified' }})"
         title: "[dependencies] Upgrade Dependencies"
         body: "Upgrade dependencies to latest version based on the range specified in the package.json"
@@ -44,5 +44,5 @@ runs:
       if: steps.create-pr.outputs.pull-request-operation == 'created'
       uses: peter-evans/enable-pull-request-automerge@v2
       with:
-        token: ${{ inputs.github-personal-access-token }}
+        token: ${{ inputs.github-access-token }}
         pull-request-number: ${{ steps.create-pr.outputs.pull-request-number }}
