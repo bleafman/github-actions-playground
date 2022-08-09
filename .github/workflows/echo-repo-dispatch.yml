@@ -5,7 +5,7 @@ name: Echo on Repository Dispatch
 # Controls when the workflow will run
 on:
   repository_dispatch:
-    types: [dependency-updated]    
+    types: [dependency-updated]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-      - run: 'echo "dependency-updated event recieved"' 
+      - run: 'echo "dependency-updated event recieved"'
+
       - name: Echo the payload
         run: 'echo "Recieved Payload: ${{ github.event.client_payload }}"'
-
