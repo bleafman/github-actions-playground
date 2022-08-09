@@ -25,6 +25,7 @@ runs:
   using: "composite"
   steps:
     - name: Upgrade all dependencies to latest version (based on the range specified in the package.json)
+      shell: bash
       run: yarn upgrade
 
     - name: Create pull request if there are changes
