@@ -1,0 +1,45 @@
+name: "Upgrade Dependencies and Automerge"
+description: "Will run 'yarn upgrade' and then create a PR and approve if there are changes."
+
+# Requires actions/checkout@v3 and actions/setup-node@v3 to be run first.
+
+inputs:
+  github-personal-access-token:
+    description: "A GitHub personal access token with 'repo' permissions."
+    required: true
+  reason:
+    description: "The reason/trigger for the upgrade. This will be used in the commit message."
+    required: false
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Upgrade all dependencies to latest version (based on the range specified in the package.json)
+      run: yarn upgrade
+
+    - name: Create pull request if there are changes
+      id: cpr
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: ${{ inputs.github-personal-access-token }}
+        commit-message: "ci: upgrades dependencies (${{ inputs.reason || 'reason unspecified' }})"
+        title: "[dependencies] Upgrade Dependencies"
+        body: "Upgrade dependencies to latest version based on the range specified in the package.json"
+        branch: "auto-upgrade-dependencies"
+        labels: "dependencies"
+        delete-branch: true
+
+    - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ inputs.github-personal-access-token }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+
+    - name: Auto approve
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: juliangruber/approve-pull-request-action@v2
+        with:
+          github-token: ${{ secrets.github-personal-access-token }}
+          number: ${{ steps.cpr.outputs.pull-request-number }}

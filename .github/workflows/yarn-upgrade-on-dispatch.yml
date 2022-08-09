@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Yarn Upgrade on Repository Dispatch
+name: Upgrade Dependencies on Repository Dispatch
 
 # Controls when the workflow will run
 on:
@@ -22,26 +22,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-
-      - run: 'echo "dependency-updated event received from {{ github.event.client_payload.dependency }}"'
-
-      - name: Upgrade all dependencies to latest version based on the range specified in the package.json
-        run: yarn upgrade
-
-      - name: Create Pull Request if there are changes
-        id: cpr
-        uses: peter-evans/create-pull-request@v3
+      - uses: ./upgrade-dependencies-and-automerge
         with:
-          token: ${{ secrets.REPO_ACCESS_PAT }}
-          commit-message: "ci: upgrades dependencies (triggered by ${{ github.event.client_payload.dependency || 'unknown (most likely a manual trigger)' }})"
-          title: "Auto-upgrade dependencies"
-          body: "Upgrade dependencies to latest version based on the range specified in the package.json"
-          branch: "auto-upgrade-dependencies"
-          labels: "dependencies"
+          github-access-token: ${{ secrets.REPO_ACCESS_PAT }}
+          reason: "${{ github.event.client_payload.dependency }} updated"
 
-      - name: Enable Pull Request Automerge
-        if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: peter-evans/enable-pull-request-automerge@v2
-        with:
-          token: ${{ secrets.REPO_ACCESS_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
